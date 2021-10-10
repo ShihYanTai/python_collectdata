@@ -44,13 +44,11 @@ def saveurlJson():
     fp.write( json.dumps(listData, ensure_ascii=False) )
     fp.close()
 
-def savedataJson():
-    fp = open("zeczecdata.json", "w", encoding ="utf-8")
-    fp.write( json.dumps(listData, ensure_ascii=False) )
-    fp.close()
 
 def getSubLinks():
-
+    
+    listContent =[]
+    
     fp = open("zeczecList.json", "r",encoding="utf-8")
     strJson = fp.read()
     listResult = json.loads(strJson)
@@ -148,7 +146,7 @@ def getSubLinks():
         else:
             pass
 
-        listData.append({"案件名稱": a_title.text,
+        listContent.append({"案件名稱": a_title.text,
                          "目前金額": int(''.join(re.findall(r'\d+', a_donate.text))),
                          "目標金額": b_target,
                          "贊助人數": n_sponsor,
@@ -159,9 +157,11 @@ def getSubLinks():
                          QAname[1]: QAnumber[1],
                          QAname[2]: QAnumber[2]
                          })
+        fp = open("zeczecdata.json", "w", encoding ="utf-8")
+        fp.write( json.dumps(listContent, ensure_ascii=False) )
+        fp.close()
 
 if __name__ == "__main__":
     getMainLinks()
     saveurlJson()
     getSubLinks()
-    savedataJson()
