@@ -1,6 +1,3 @@
-import pprint
-
-
 def adult(url):
 
     from selenium import webdriver
