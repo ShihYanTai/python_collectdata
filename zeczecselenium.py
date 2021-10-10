@@ -12,7 +12,10 @@ def adult(url):
 
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")                #不開啟實體瀏覽器背景執行
-    options.add_argument("--start-maximized")         #最大化視窗
+    options.add_argument("----disable-plugins")        # 禁用插鍵
+    options.add_argument("-ignore-certificate-errors")
+    options.add_argument("-ignore-ssl-errors")
+#    options.add_argument("--start-maximized")         #最大化視窗
     options.add_argument("--incognito")               #開啟無痕模式
     options.add_argument("--disable-popup-blocking ") #禁用彈出攔截
     executable_path = './chromedriver.exe'
