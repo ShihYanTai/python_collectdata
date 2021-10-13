@@ -77,8 +77,6 @@ def getSubLinks(time):
 
         response = requests.get(listResult[i]['link'], headers = headers)
 
-#        print(listResult[i]['link'])
-
         soup = BeautifulSoup(response.text, "lxml")
 
         # 如果有進入 詢問是否滿十八歲進入selenium 登入後跳出重新登入
