@@ -1,5 +1,5 @@
 from zeczecselenium import adult
-import json, os, datetime, time
+import json, datetime, time
 from datetime import timedelta
 from urllib import parse
 import requests
@@ -10,13 +10,11 @@ import re
 
 nowtime = { inde : ii for inde, ii in enumerate(time.localtime())}
 
-instantlytime = datetime.datetime(nowtime[0] , nowtime[1] , nowtime[2], nowtime[3], nowtime[4])
-
 dayTime = datetime.datetime(nowtime[0], nowtime[1], nowtime[2], 0, 0, 0)
 
 nighttime = datetime.datetime(nowtime[0], nowtime[1], nowtime[2], 12, 0, 0)
 
-one = timedelta(days= 1)
+one = timedelta(days=1)
 
 # zeczec網頁資料
 
@@ -67,7 +65,11 @@ def getSubLinks(time):
 
     listContent = []
 
-    fp = open("zeczecList.json", "r", encoding="utf-8")
+    time = str(time).replace(":", '')
+    time = time.replace(" ", '')
+    time = time.replace("-", '')
+
+    fp = open(f"zeczecList{time}.json", "r", encoding="utf-8")
     strJson = fp.read()
     listResult = json.loads(strJson)
 
@@ -88,6 +90,17 @@ def getSubLinks(time):
             continue
 
         a_title = soup.select_one('h2[class="f4 mt2 mb1"]')
+
+        # 篩選募資區域
+
+        if soup.select_one('div[class="f6 gray"] span[class="b"]') != None:
+            a_zone = soup.select_one('div[class="f6 gray"] span[class="b"]').text
+        else:
+            a_zone = soup.select_one('div[class="f6 gray"] span[class="b"]')
+
+        # 篩選募資類別
+
+        a_method = [method.text for method in soup.select('a[class="underline dark-gray b dib"]')]
 
         a_donate = soup.select_one('div[class="f3 b js-sum-raised nowrap"]')
 
@@ -165,16 +178,19 @@ def getSubLinks(time):
             pass
 
         listContent.append({"案件名稱": a_title.text,
-                         "目前金額": int(''.join(re.findall(r'\d+', a_donate.text))),
-                         "目標金額": b_target,
-                         "贊助人數": n_sponsor,
-                         "剩餘時間": t_remaining,
-                         "開始時程": dictDuration['begin'],
-                         "結束時程": dictDuration['end'],
-                         QAname[0]: QAnumber[0],
-                         QAname[1]: QAnumber[1],
-                         QAname[2]: QAnumber[2]
-                         })
+                            "募資區域": a_zone,
+                            "募資方式": a_method[0],
+                            "專案類別": a_method[1],
+                            "目前金額": int(''.join(re.findall(r'\d+', a_donate.text))),
+                            "目標金額": b_target,
+                            "贊助人數": n_sponsor,
+                            "剩餘時間": t_remaining,
+                            "開始時程": dictDuration['begin'],
+                            "結束時程": dictDuration['end'],
+                            QAname[0]: QAnumber[0],
+                            QAname[1]: QAnumber[1],
+                            QAname[2]: QAnumber[2]
+                            })
 
         # 寫入資料附上時間
 
@@ -190,37 +206,40 @@ if __name__ == "__main__":
     while True:
         # 在中午12點前執行程式
         if datetime.datetime.now() < nighttime:
+            print('1')
+            time.sleep(1)
+            while datetime.datetime.now() < dayTime:
+                time.sleep(1)
+            print('1')
+            getMainLinks(dayTime)
+            getSubLinks(dayTime)
+            print('1')
 
+            time.sleep(1)
             while datetime.datetime.now() < nighttime:
                 time.sleep(1)
-
-            getMainLinks(instantlytime)
-            getSubLinks(instantlytime)
-
-            tomorrow = dayTime + one
-            while datetime.datetime.now() < tomorrow:
-                time.sleep(1)
-
-            getMainLinks(instantlytime)
-            getSubLinks(instantlytime)
+            print('1')
+            getMainLinks(nighttime)
+            getSubLinks(nighttime)
 
         # 在中午12點後執行程式
         else:
-
+            time.sleep(1)
             tomorrow = dayTime + one
-            while datetime.datetime.now() < tomorrow:
+            while datetime.datetime.now() > tomorrow:
+                print('2')
                 time.sleep(1)
 
                 while datetime.datetime.now() < dayTime:
                     time.sleep(1)
-
-                getMainLinks(instantlytime)
-                getSubLinks(instantlytime)
-
+                print('2')
+                getMainLinks(dayTime)
+                getSubLinks(dayTime)
+                print('2')
                 while datetime.datetime.now() < nighttime:
                     time.sleep(1)
-
-                getMainLinks(instantlytime)
-                getSubLinks(instantlytime)
+                print('2')
+                getMainLinks(nighttime)
+                getSubLinks(nighttime)
                 continue
         continue
