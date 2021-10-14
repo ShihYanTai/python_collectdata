@@ -44,6 +44,22 @@ def adult(url):
 
         a_title = driver.find_element(By.CSS_SELECTOR, 'h2.f4.mt2.mb1').get_attribute('innerText')
 
+        # 篩選募資區域
+
+        try:
+
+            a_zone = driver.find_element(By.CSS_SELECTOR, 'div.f6.gray span.b').get_attribute('innerText')
+
+        except NoSuchElementException:
+
+            a_zone = None
+
+        # 擷取募資類別
+
+        method = driver.find_elements(By.CSS_SELECTOR, 'a.underline.dark-gray.b.dib')
+
+        a_method = [j_method.get_attribute('innerText') for j_method in method]
+
         a_donate = driver.find_element(By.CSS_SELECTOR, 'div.f3.b.js-sum-raised.nowrap').get_attribute('innerText')
 
         # 目標金額會有長期每月donate ，分辨是不是長期donate
@@ -100,16 +116,19 @@ def adult(url):
             QA_b.insert(0, 0)
 
         listData = {"案件名稱": a_title,
-                         "目前金額": int(''.join(re.findall(r'\d+', a_donate))),
-                         "目標金額": a_target,
-                         "贊助人數": n_sponsor,
-                         "剩餘時間": t_remaining ,
-                         "開始時程": dictDuration['begin'],
-                         "結束時程": dictDuration['end'],
-                         "專案更新": QA_b[0],
-                        "留言": QA_b[1],
-                        "常見問答": QA_b[2]
-                        }
+                    "募資區域": a_zone,
+                    "募資方式": a_method[0],
+                    "專案類別": a_method[1],
+                    "目前金額": int(''.join(re.findall(r'\d+', a_donate))),
+                    "目標金額": a_target,
+                    "贊助人數": n_sponsor,
+                    "剩餘時間": t_remaining,
+                    "開始時程": dictDuration['begin'],
+                    "結束時程": dictDuration['end'],
+                    "專案更新": QA_b[0],
+                    "留言": QA_b[1],
+                    "常見問答": QA_b[2]
+                    }
 
         driver.quit()
 
