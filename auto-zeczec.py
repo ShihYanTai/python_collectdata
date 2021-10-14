@@ -206,39 +206,32 @@ if __name__ == "__main__":
     while True:
         # 在中午12點前執行程式
         if datetime.datetime.now() < nighttime:
-            print('1')
-            time.sleep(1)
             while datetime.datetime.now() < dayTime:
                 time.sleep(1)
-            print('1')
+
             getMainLinks(dayTime)
             getSubLinks(dayTime)
-            print('1')
 
-            time.sleep(1)
             while datetime.datetime.now() < nighttime:
                 time.sleep(1)
-            print('1')
+         
             getMainLinks(nighttime)
             getSubLinks(nighttime)
 
         # 在中午12點後執行程式
         else:
-            time.sleep(1)
             tomorrow = dayTime + one
             while datetime.datetime.now() > tomorrow:
-                print('2')
                 time.sleep(1)
-
                 while datetime.datetime.now() < dayTime:
                     time.sleep(1)
-                print('2')
+         
                 getMainLinks(dayTime)
                 getSubLinks(dayTime)
-                print('2')
+               
                 while datetime.datetime.now() < nighttime:
                     time.sleep(1)
-                print('2')
+                    
                 getMainLinks(nighttime)
                 getSubLinks(nighttime)
                 continue
