@@ -6,15 +6,6 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
-# 設定每天要要執行時間
-
-nowtime = { inde : ii for inde, ii in enumerate(time.localtime())}
-
-dayTime = datetime.datetime(nowtime[0], nowtime[1], nowtime[2], 0, 0, 0)
-
-nighttime = datetime.datetime(nowtime[0], nowtime[1], nowtime[2], 12, 0, 0)
-
-one = timedelta(days=1)
 
 # zeczec網頁資料
 
@@ -25,7 +16,7 @@ headers = {
 
 }
 
-def getMainLinks(time):
+def getMainLinks(recordtime):
 
     listData = []
 
@@ -53,23 +44,23 @@ def getMainLinks(time):
 
     #寫入連結資料附上時間
 
-    time = str(time).replace(":", '')
-    time = time.replace(" ", '')
-    time = time.replace("-", '')
+    recordtime = str(recordtime).replace(":", '')
+    recordtime = recordtime.replace(" ", '')
+    recordtime = recordtime.replace("-", '')
 
-    fp = open(f"zeczecList{time}.json", "w", encoding ="utf-8")
+    fp = open(f"zeczecList{recordtime}.json", "w", encoding ="utf-8")
     fp.write( json.dumps(listData, ensure_ascii=False) )
     fp.close()
 
-def getSubLinks(time):
+def getSubLinks(recordtime):
 
     listContent = []
 
-    time = str(time).replace(":", '')
-    time = time.replace(" ", '')
-    time = time.replace("-", '')
+    recordtime = str(recordtime).replace(":", '')
+    recordtime = recordtime.replace(" ", '')
+    recordtime = recordtime.replace("-", '')
 
-    fp = open(f"zeczecList{time}.json", "r", encoding="utf-8")
+    fp = open(f"zeczecList{recordtime}.json", "r", encoding="utf-8")
     strJson = fp.read()
     listResult = json.loads(strJson)
 
@@ -194,45 +185,61 @@ def getSubLinks(time):
 
         # 寫入資料附上時間
 
-        time = str(time).replace(":", '')
-        time = time.replace(" ", '')
-        time = time.replace("-", '')
+        recordtime = str(recordtime).replace(":", '')
+        recordtime = recordtime.replace(" ", '')
+        recordtime = recordtime.replace("-", '')
 
-        fp = open(f"zeczecdata{time}.json", "w", encoding="utf-8")
+        fp = open(f"zeczecdata{recordtime}.json", "w", encoding="utf-8")
         fp.write(json.dumps(listContent, ensure_ascii=False))
         fp.close()
+        time.sleep(0.5)
 
 if __name__ == "__main__":
+
     while True:
+
+        # 設定每天要要執行時間
+
+        nowtime = {inde: ii for inde, ii in enumerate(time.localtime())}
+
+        dayTime = datetime.datetime(nowtime[0], nowtime[1], nowtime[2], 0, 0, 0)
+
+        nighttime = datetime.datetime(nowtime[0], nowtime[1], nowtime[2], 12, 0, 0)
+
+        one = timedelta(days=1)
+
         # 在中午12點前執行程式
         if datetime.datetime.now() < nighttime:
-            while datetime.datetime.now() < dayTime:
-                time.sleep(1)
-
-            getMainLinks(dayTime)
-            getSubLinks(dayTime)
+            instently = datetime.datetime.now()
+            getMainLinks(instently)
+            getSubLinks(instently)
 
             while datetime.datetime.now() < nighttime:
                 time.sleep(1)
-         
-            getMainLinks(nighttime)
-            getSubLinks(nighttime)
+
+            instently = datetime.datetime.now()
+
+            getMainLinks(instently)
+            getSubLinks(instently)
 
         # 在中午12點後執行程式
         else:
+
             tomorrow = dayTime + one
-            while datetime.datetime.now() > tomorrow:
+
+            while datetime.datetime.now() < tomorrow:
                 time.sleep(1)
-                while datetime.datetime.now() < dayTime:
-                    time.sleep(1)
-         
-                getMainLinks(dayTime)
-                getSubLinks(dayTime)
-               
-                while datetime.datetime.now() < nighttime:
-                    time.sleep(1)
-                    
-                getMainLinks(nighttime)
-                getSubLinks(nighttime)
-                continue
+
+            instently = datetime.datetime.now()
+
+            getMainLinks(instently)
+            getSubLinks(instently)
+
+            while datetime.datetime.now() < nighttime:
+                time.sleep(1)
+
+            instently = datetime.datetime.now()
+            getMainLinks(instently)
+            getSubLinks(instently)
+
         continue
