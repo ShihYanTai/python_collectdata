@@ -67,10 +67,12 @@ def getSubLinks(recordtime):
     # 蒐集各案件的資料 取得先前所有的連結 進入案件取資料
 
     for i in range( len(listResult)):
-
+        print(listResult[i]['link'])
         response = requests.get(listResult[i]['link'], headers = headers)
 
         soup = BeautifulSoup(response.text, "lxml")
+
+        drecord = datetime.datetime.now().strftime(f'%Y/%m/%d %H:%M:%S')
 
         # 如果有進入 詢問是否滿十八歲進入selenium 登入後跳出重新登入
 
@@ -93,7 +95,7 @@ def getSubLinks(recordtime):
 
         a_method = [method.text for method in soup.select('a[class="underline dark-gray b dib"]')]
 
-        a_donate = soup.select_one('div[class="f3 b js-sum-raised nowrap"]')
+        a_donate = int(''.join(re.findall(r'\d+', soup.select_one('div[class="f3 b js-sum-raised nowrap"]').text)))
 
         a_target = soup.select_one('div[class="f7"]')
 
@@ -104,10 +106,19 @@ def getSubLinks(recordtime):
         else:
             b_target = ''.join(re.findall(r'\d', a_target.text))
 
+        # 由目標金額篩選完後算出達成率
+
         if b_target == '':
+
             b_target = None
+
+            arrivepercent = None
+
         else:
             b_target = int(b_target)
+
+            arrivepercent = a_donate / b_target
+
 
         # 如果是預購就帶入即將開始
 
@@ -122,8 +133,16 @@ def getSubLinks(recordtime):
 
         if t_remaining == None:
             t_remaining = None
+
+        # 剩餘時間轉成分鐘
+
         else:
-            t_remaining = t_remaining.text
+            if '天' in re.findall(r'[\u4e00-\u9fa5]+', t_remaining.text)[0]:
+                t_remaining = int(''.join(re.findall(r'\d+', t_remaining.text)[0])) * 24 * 60
+            elif '小時' in re.findall(r'[\u4e00-\u9fa5]+', t_remaining.text)[0]:
+                t_remaining = int(''.join(re.findall(r'\d+', t_remaining.text)[0])) * 60
+            else:
+                t_remaining = int(''.join(re.findall(r'\d+', t_remaining.text)[0]))
 
         # 先dict 開始日與截止日期
 
@@ -139,8 +158,23 @@ def getSubLinks(recordtime):
         dictDuration['begin'] = matchDuration[1]
         if matchDuration[3] != None:
             dictDuration['end'] = matchDuration[3]
+
+            # 由爬蟲當下時間與結束時間做比較後，篩選是否完成募資
+
+            if dictDuration['end'] > drecord:
+                if arrivepercent > 1:
+                    whether = 1
+                else:
+                    whether = 0
+            else:
+                if arrivepercent > 1:
+                    whether = 1
+                else:
+                    whether = 0
+
         else:
             dictDuration['end'] = None
+            whether = None
 
         # QA 有三個專案更新 常見問答 留言 及各自數量有些案子有缺後需補上各自缺少的 ，需先全部轉成int再加入dict
 
@@ -168,11 +202,12 @@ def getSubLinks(recordtime):
         else:
             pass
 
-        listContent.append({"案件名稱": a_title.text,
+        listContent.append({"downloadrecord": drecord,
+                            "案件名稱": a_title.text,
                             "募資區域": a_zone,
                             "募資方式": a_method[0],
                             "專案類別": a_method[1],
-                            "目前金額": int(''.join(re.findall(r'\d+', a_donate.text))),
+                            "目前金額": a_donate,
                             "目標金額": b_target,
                             "贊助人數": n_sponsor,
                             "剩餘時間": t_remaining,
@@ -180,7 +215,9 @@ def getSubLinks(recordtime):
                             "結束時程": dictDuration['end'],
                             QAname[0]: QAnumber[0],
                             QAname[1]: QAnumber[1],
-                            QAname[2]: QAnumber[2]
+                            QAname[2]: QAnumber[2],
+                            "達成率": arrivepercent,
+                            "是否完成募資": whether
                             })
 
         # 寫入資料附上時間
@@ -192,7 +229,7 @@ def getSubLinks(recordtime):
         fp = open(f"zeczecdata{recordtime}.json", "w", encoding="utf-8")
         fp.write(json.dumps(listContent, ensure_ascii=False))
         fp.close()
-        time.sleep(0.5)
+        time.sleep(1)
 
 if __name__ == "__main__":
 
@@ -226,15 +263,19 @@ if __name__ == "__main__":
         else:
 
             tomorrow = dayTime + one
+            instently = datetime.datetime.now()
+            getMainLinks(instently)
+            getSubLinks(instently)
 
             while datetime.datetime.now() < tomorrow:
                 time.sleep(1)
-
+            print('2')
             instently = datetime.datetime.now()
 
             getMainLinks(instently)
             getSubLinks(instently)
 
+            print('2')
             while datetime.datetime.now() > nighttime:
                 time.sleep(1)
 
