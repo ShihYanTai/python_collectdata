@@ -214,7 +214,7 @@ if __name__ == "__main__":
             getMainLinks(instently)
             getSubLinks(instently)
 
-            while datetime.datetime.now() < nighttime:
+            while datetime.datetime.now() > nighttime:
                 time.sleep(1)
 
             instently = datetime.datetime.now()
@@ -235,7 +235,7 @@ if __name__ == "__main__":
             getMainLinks(instently)
             getSubLinks(instently)
 
-            while datetime.datetime.now() < nighttime:
+            while datetime.datetime.now() > nighttime:
                 time.sleep(1)
 
             instently = datetime.datetime.now()
