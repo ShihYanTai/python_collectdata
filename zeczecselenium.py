@@ -7,6 +7,7 @@ def adult(url):
     from selenium.webdriver.support import expected_conditions as EC
 
     from selenium.webdriver.common.by import By
+    import datetime
     from time import sleep
     import re
 
@@ -40,6 +41,8 @@ def adult(url):
 
         sleep(1)
 
+        drecord = datetime.datetime.now().strftime(f'%Y/%m/%d %H:%M:%S')
+
         # 開始搜尋資料
 
         a_title = driver.find_element(By.CSS_SELECTOR, 'h2.f4.mt2.mb1').get_attribute('innerText')
@@ -60,16 +63,21 @@ def adult(url):
 
         a_method = [j_method.get_attribute('innerText') for j_method in method]
 
-        a_donate = driver.find_element(By.CSS_SELECTOR, 'div.f3.b.js-sum-raised.nowrap').get_attribute('innerText')
+        a_donate = int(''.join(re.findall(r'\d+', driver.find_element(By.CSS_SELECTOR, 'div.f3.b.js-sum-raised.nowrap').get_attribute('innerText'))))
 
         # 目標金額會有長期每月donate ，分辨是不是長期donate
 
         a_target = driver.find_element(By.CSS_SELECTOR, 'div[class="f7"]').get_attribute('innerText')
 
+        # 由目標金額篩選完後算出達成率
+
         if a_target =='/ 每月':
             a_target = None
+            arrivepercent = None
+
         else:
             a_target = int(''.join(re.findall(r'\d', a_target)))
+            arrivepercent = a_donate / a_target
 
         # 判斷贊助人數 有些是即將募資還沒有人數
 
@@ -83,7 +91,17 @@ def adult(url):
         # 如果沒有剩餘時間 就加入None
         try:
 
-            t_remaining = driver.find_element_by_class_name( 'span.js-time-left').get_attribute('innerText')
+            t_remaining = driver.find_element(By.CSS_SELECTOR, 'span.js-time-left').get_attribute('innerText')
+
+            # 剩餘時間轉成分鐘
+
+            if '天' in re.findall(r'[\u4e00-\u9fa5]+', t_remaining):
+                t_remaining = int(''.join(re.findall(r'\d+', t_remaining))) * 24 * 60
+
+            elif '小時' in re.findall(r'[\u4e00-\u9fa5]+', t_remaining):
+                t_remaining = int(''.join(re.findall(r'\d+', t_remaining))) * 60
+            else:
+                t_remaining = int(''.join(re.findall(r'\d+', t_remaining.text)))
 
         except NoSuchElementException :
 
@@ -101,8 +119,24 @@ def adult(url):
 
         if matchDuration[3] != None:
             dictDuration['end'] = matchDuration[3]
+
+            # 由爬蟲當下時間與結束時間做比較後，篩選是否完成募資
+
+            if dictDuration['end'] > drecord:
+                if arrivepercent > 1:
+                    whether = 1
+                else:
+                    whether = 0
+
+            else:
+                if arrivepercent > 1:
+                    whether = 1
+                else:
+                    whether = 0
+
         else:
             dictDuration['end'] = None
+            whether = None
 
         QA = driver.find_elements(By.CSS_SELECTOR, 'span.f7.b.ml3.gray')
 
@@ -115,11 +149,12 @@ def adult(url):
         elif len(QA_b) < 3:
             QA_b.insert(0, 0)
 
-        listData = {"案件名稱": a_title,
+        listData = {"downloadrecord": drecord,
+                    "案件名稱": a_title,
                     "募資區域": a_zone,
                     "募資方式": a_method[0],
                     "專案類別": a_method[1],
-                    "目前金額": int(''.join(re.findall(r'\d+', a_donate))),
+                    "目前金額": a_donate,
                     "目標金額": a_target,
                     "贊助人數": n_sponsor,
                     "剩餘時間": t_remaining,
@@ -127,8 +162,9 @@ def adult(url):
                     "結束時程": dictDuration['end'],
                     "專案更新": QA_b[0],
                     "留言": QA_b[1],
-                    "常見問答": QA_b[2]
-                    }
+                    "常見問答": QA_b[2],
+                    "達成率": arrivepercent,
+                    "是否完成募資": whether}
 
         driver.quit()
 
