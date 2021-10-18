@@ -1,6 +1,5 @@
 from zeczecselenium import adult
 import json, datetime, time
-from datetime import timedelta
 from urllib import parse
 import requests
 from bs4 import BeautifulSoup
@@ -16,7 +15,7 @@ headers = {
 
 }
 
-def getMainLinks(recordtime):
+def getMainLinks(count):
 
     listData = []
 
@@ -42,25 +41,16 @@ def getMainLinks(recordtime):
                              "link": 'https://www.zeczec.com' + parse.unquote(a.get('href'))
         })
 
-    #寫入連結資料附上時間
 
-    recordtime = str(recordtime).replace(":", '')
-    recordtime = recordtime.replace(" ", '')
-    recordtime = recordtime.replace("-", '')
-
-    fp = open(f"zeczecList{recordtime}.json", "w", encoding ="utf-8")
+    fp = open(f"zeczecList{count}.json", "w", encoding ="utf-8")
     fp.write( json.dumps(listData, ensure_ascii=False) )
     fp.close()
 
-def getSubLinks(recordtime):
+def getSubLinks(count):
 
     listContent = []
 
-    recordtime = str(recordtime).replace(":", '')
-    recordtime = recordtime.replace(" ", '')
-    recordtime = recordtime.replace("-", '')
-
-    fp = open(f"zeczecList{recordtime}.json", "r", encoding="utf-8")
+    fp = open(f"zeczecList{count}.json", "r", encoding="utf-8")
     strJson = fp.read()
     listResult = json.loads(strJson)
 
@@ -220,67 +210,20 @@ def getSubLinks(recordtime):
                             "是否完成募資": whether
                             })
 
-        # 寫入資料附上時間
-
-        recordtime = str(recordtime).replace(":", '')
-        recordtime = recordtime.replace(" ", '')
-        recordtime = recordtime.replace("-", '')
-
-        fp = open(f"zeczecdata{recordtime}.json", "w", encoding="utf-8")
+        fp = open(f"zeczecdata{count}.json", "w", encoding="utf-8")
         fp.write(json.dumps(listContent, ensure_ascii=False))
         fp.close()
-        time.sleep(1)
+        time.sleep(2)
 
 if __name__ == "__main__":
 
     while True:
-
-        # 設定每天要要執行時間
-
-        nowtime = {inde: ii for inde, ii in enumerate(time.localtime())}
-
-        dayTime = datetime.datetime(nowtime[0], nowtime[1], nowtime[2], 0, 0, 0)
-
-        nighttime = datetime.datetime(nowtime[0], nowtime[1], nowtime[2], 12, 0, 0)
-
-        one = timedelta(days=1)
-
-        # 在中午12點前執行程式
-        if datetime.datetime.now() < nighttime:
-            instently = datetime.datetime.now()
-            getMainLinks(instently)
-            getSubLinks(instently)
-
-            while datetime.datetime.now() > nighttime:
-                time.sleep(1)
-
-            instently = datetime.datetime.now()
-
-            getMainLinks(instently)
-            getSubLinks(instently)
-
-        # 在中午12點後執行程式
-        else:
-
-            tomorrow = dayTime + one
-            instently = datetime.datetime.now()
-            getMainLinks(instently)
-            getSubLinks(instently)
-
-            while datetime.datetime.now() < tomorrow:
-                time.sleep(1)
-            print('2')
-            instently = datetime.datetime.now()
-
-            getMainLinks(instently)
-            getSubLinks(instently)
-
-            print('2')
-            while datetime.datetime.now() > nighttime:
-                time.sleep(1)
-
-            instently = datetime.datetime.now()
-            getMainLinks(instently)
-            getSubLinks(instently)
-
+        
+        count = 0
+        
+        getMainLinks(count)
+        getSubLinks(count)
+        
+        count += 1
+        
         continue
